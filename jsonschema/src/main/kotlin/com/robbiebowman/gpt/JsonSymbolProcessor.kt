@@ -1,5 +1,6 @@
-package com.robbiebowman.jsonschemaannotation
+package com.robbiebowman.gpt
 
+import com.google.devtools.ksp.getDeclaredProperties
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
@@ -10,11 +11,10 @@ fun OutputStream.appendText(str: String) {
 }
 
 class BuilderProcessor(
-    val codeGenerator: CodeGenerator,
-    val logger: KSPLogger
+    val codeGenerator: CodeGenerator
 ) : SymbolProcessor {
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        val symbols = resolver.getSymbolsWithAnnotation("com.robbiebowman.jsonschemaannotation.JsonSchema")
+        val symbols = resolver.getSymbolsWithAnnotation("com.robbiebowman.gpt.GptTools")
         val ret = symbols.filter { !it.validate() }.toList()
         symbols
             .filter { it is KSClassDeclaration && it.validate() }
@@ -24,17 +24,20 @@ class BuilderProcessor(
 
     inner class BuilderVisitor : KSVisitorVoid() {
         override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
-            classDeclaration.primaryConstructor!!.accept(this, data)
+            val properties = classDeclaration.getDeclaredProperties()
+            properties.groupBy { it.type }
+
+            FileCreator().createInputClass(codeGenerator, classDeclaration, 1)
         }
 
         override fun visitFunctionDeclaration(function: KSFunctionDeclaration, data: Unit) {
             val parent = function.parentDeclaration as KSClassDeclaration
             val packageName = parent.containingFile!!.packageName.asString()
-            val className = "${parent.simpleName.asString()}Builder"
+            val className = "${parent.simpleName.asString()}_Input"
             val file = codeGenerator.createNewFile(Dependencies(true, function.containingFile!!), packageName , className)
             file.appendText("package $packageName\n\n")
             file.appendText("//import HELLO\n\n")
-            file.appendText("class $className{\n")
+            file.appendText("class ${className}{\n")
             function.parameters.forEach {
                 val name = it.name!!.asString()
                 val typeName = StringBuilder(it.type.resolve().declaration.qualifiedName?.asString() ?: "<ERROR>")
@@ -69,13 +72,12 @@ class BuilderProcessor(
             file.close()
         }
     }
-
 }
 
 class BuilderProcessorProvider : SymbolProcessorProvider {
     override fun create(
         environment: SymbolProcessorEnvironment
     ): SymbolProcessor {
-        return BuilderProcessor(environment.codeGenerator, environment.logger)
+        return BuilderProcessor(environment.codeGenerator)
     }
 }
