@@ -3,10 +3,11 @@ package com.robbiebowman.gpt
 import com.google.devtools.ksp.getDeclaredProperties
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
+import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.Nullability
 
-class FileCreator {
+class FileCreator(private val resolver: Resolver) {
 
     fun createClass(codeGenerator: CodeGenerator, basedOn: KSClassDeclaration) {
         val packageName = basedOn.containingFile!!.packageName.asString()
@@ -63,7 +64,7 @@ class FileCreator {
             val description = property.annotations
                 .firstOrNull{it.shortName.asString() == "GptDescription"}
                 ?.arguments?.firstOrNull()?.value as String? ?: ""
-            val jsonType = getJsonType(resolvedType)
+            val jsonType = getJsonType(resolvedType, resolver)
             val name = property.simpleName.getShortName()
             if (jsonType == "object") {
                 val kotlinType = createInputClass(codeGenerator, resolvedType.declaration as KSClassDeclaration, depth+1)

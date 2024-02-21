@@ -18,16 +18,16 @@ class BuilderProcessor(
         val ret = symbols.filter { !it.validate() }.toList()
         symbols
             .filter { it is KSClassDeclaration && it.validate() }
-            .forEach { it.accept(BuilderVisitor(), Unit) }
+            .forEach { it.accept(BuilderVisitor(resolver), Unit) }
         return ret
     }
 
-    inner class BuilderVisitor : KSVisitorVoid() {
+    inner class BuilderVisitor(private val resolver: Resolver) : KSVisitorVoid() {
         override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
             val properties = classDeclaration.getDeclaredProperties()
             properties.groupBy { it.type }
 
-            FileCreator().createInputClass(codeGenerator, classDeclaration, 1)
+            FileCreator(resolver).createInputClass(codeGenerator, classDeclaration, 1)
         }
 
         override fun visitFunctionDeclaration(function: KSFunctionDeclaration, data: Unit) {
