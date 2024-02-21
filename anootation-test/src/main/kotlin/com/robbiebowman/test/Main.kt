@@ -1,17 +1,13 @@
 package com.robbiebowman.test
 
-
 import com.azure.ai.openai.OpenAIClientBuilder
 import com.azure.ai.openai.models.*
 import com.azure.core.credential.KeyCredential
 import com.azure.core.util.BinaryData
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.robbiebowman.gpt.GptDescription
-import com.robbiebowman.gpt.GptTools
+import com.robbiebowman.gpt.GptTool
 import com.robbiebowman.gpt.ObjectField
 import java.util.*
-
 
 fun main() {
     val openaiKey = System.getenv("OPEN_AI_KEY")
@@ -24,7 +20,7 @@ fun main() {
         ChatRequestUserMessage("What sort of clothing should I wear today in Berlin?")
     )
     val toolDefinition: ChatCompletionsToolDefinition = ChatCompletionsFunctionToolDefinition(
-        getFutureTemperatureFunctionDefinition()
+        futureTemperatureFunctionDefinition
     )
     val chatCompletionsOptions = ChatCompletionsOptions(chatMessages)
     chatCompletionsOptions.tools = listOf(toolDefinition)
@@ -67,20 +63,17 @@ fun main() {
     }
 }
 
-// In this example we ignore the parameters for our tool function
-fun futureTemperature(locationName: String?, data: String?): String {
+@GptTool("Gets the temperature in the future")
+fun futureTemperature(
+    @GptDescription("The location's name to fetch the temperature for")
+    locationName: String?,
+    @GptDescription("The date the user wants to find the temperature for")
+    data: String?
+): String {
     return "-7 C"
 }
 
-fun getFutureTemperatureFunctionDefinition(): FunctionDefinition {
-    val functionDefinition = FunctionDefinition("FutureTemperature")
-    functionDefinition.description = "Get the future temperature for a given location and date."
-    val parameters = ObjectField("", Weather_Props())
-    functionDefinition.parameters = BinaryData.fromObject(parameters)
-    return functionDefinition
-}
-
-@GptTools("")
+@GptDescription("Weather parameters")
 class Weather {
     @GptDescription("The name of the location to get the future temperature for")
     val locationName: String? = null

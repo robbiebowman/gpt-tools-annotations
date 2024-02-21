@@ -1,22 +1,25 @@
 package com.robbiebowman.test
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.robbiebowman.gpt.GptDescription
-import com.robbiebowman.gpt.GptTools
-import com.robbiebowman.gpt.SimpleField
+import com.robbiebowman.gpt.GptTool
 
-@GptTools("Testy test")
+@GptTool("Gets a good coffee thingy")
+fun getCoffee(inputs: MyTestClass) {
+
+}
+
+@GptDescription("Can I do this")
 data class MyTestClass(
-    @GptDescription("The brand of coffee")
+    @property:GptDescription("The brand of coffee")
     val coffee: String,
 
-    @GptDescription("Coffee weight")
+    @property:GptDescription("Coffee weight")
     val weight: Double,
 
-    @GptDescription("Obj description")
+    @property:GptDescription("Obj description")
     val anotherObj: NestedClass
 )
 
 data class NestedClass(
-    @GptDescription("Nested description") val nestedValue: Double
+    @property:GptDescription("Nested description") val nestedValue: Double
 )
