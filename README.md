@@ -8,3 +8,8 @@ There's currently a bug in ksp where annotations aren't properly associated with
 As a workaround, when describing the parameters of a data class, use `@property:GptDescription` instead.
 
 See issue: https://github.com/google/ksp/issues/1562
+
+# To-do's
+- Make the kotlin type -> json type mapping extensible.
+- Add support for kotlin iterable types.
+- Improve the discoverability of the generated FunctionDefinition.
