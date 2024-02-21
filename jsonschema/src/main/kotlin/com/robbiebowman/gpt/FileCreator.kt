@@ -1,13 +1,9 @@
 package com.robbiebowman.gpt
 
-import com.google.devtools.ksp.getDeclaredProperties
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.Resolver
-import com.google.devtools.ksp.symbol.KSClassDeclaration
-import com.google.devtools.ksp.symbol.KSDeclaration
-import com.google.devtools.ksp.symbol.KSFunctionDeclaration
-import com.google.devtools.ksp.symbol.Nullability
+import com.google.devtools.ksp.symbol.*
 
 class FileCreator(private val resolver: Resolver) {
 
@@ -27,27 +23,34 @@ class FileCreator(private val resolver: Resolver) {
         file.appendText("class ${className}{\n")
         props.forEach { property ->
             val resolvedType = property.type.resolve()
-            val description = resolvedType.declaration.annotations
-                .firstOrNull {
-                    it.annotationType
-                        .resolve()
-                        .isAssignableFrom<GptDescription>(resolver)}
-                ?.arguments?.firstOrNull()?.value?.let{"\"${it}\""} ?: "null"
+            val description = (getGptDescription(property.annotations)
+                ?: getGptDescription(resolvedType.declaration.annotations))
+            val formattedDescription = description?.let { "\"${it}\"" } ?: "null"
             val jsonType = getJsonType(resolvedType, resolver)
             if (jsonType == "object") {
                 val newProps = PropertyDefinition.getProps(resolvedType.declaration as KSClassDeclaration)
                 val kotlinType =
                     createInputClass(codeGenerator, resolvedType.declaration, newProps, depth + 1)
-                file.appendText("""    val ${property.name} = ObjectField($kotlinType(), $description)""")
+                file.appendText("""    val ${property.name} = ObjectField($kotlinType(), $formattedDescription)""")
                 file.appendText("\n")
             } else {
-                file.appendText("""    val ${property.name} = SimpleField("$jsonType", $description)""")
+                file.appendText("""    val ${property.name} = SimpleField("$jsonType", $formattedDescription)""")
                 file.appendText("\n")
             }
         }
         file.appendText("}\n")
         file.close()
         return "${packageName}.${className}"
+    }
+
+    private fun getGptDescription(annotations: Sequence<KSAnnotation>): String? {
+        return annotations
+            .firstOrNull {
+                it.annotationType
+                    .resolve()
+                    .isAssignableFrom<GptDescription>(resolver)
+            }
+            ?.arguments?.firstOrNull()?.value as String?
     }
 
     fun createFunctionDefinition(codeGenerator: CodeGenerator, functionDeclaration: KSFunctionDeclaration, description: String, parentPropClass: String) {

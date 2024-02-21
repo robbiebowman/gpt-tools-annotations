@@ -17,7 +17,7 @@ fun main() {
         .buildClient()
     val chatMessages = listOf(
         ChatRequestSystemMessage("You are a helpful assistant."),
-        ChatRequestUserMessage("What sort of clothing should I wear today in Berlin?")
+        ChatRequestUserMessage("What sort of clothing should I wear today in Berlin next Christmas?")
     )
     val toolDefinition: ChatCompletionsToolDefinition = ChatCompletionsFunctionToolDefinition(
         futureTemperatureFunctionDefinition
@@ -35,10 +35,10 @@ fun main() {
         println("Function Arguments: $functionArguments")
 
         // As an additional step, you may want to deserialize the parameters, so you can call your function
-        val parameters = BinaryData.fromString(functionArguments).toObject(Weather::class.java)
-        println("Location Name: " + parameters.locationName)
-        println("Date: " + parameters.date)
-        val functionCallResult = futureTemperature(parameters.locationName, parameters.date)
+        val parameters = BinaryData.fromString(functionArguments).toObject(Location::class.java)
+        println("Location Name: " + parameters.city)
+        println("Date: " + parameters.city)
+        val functionCallResult = futureTemperature(parameters, parameters.city)
         val assistantMessage = ChatRequestAssistantMessage("")
         assistantMessage.toolCalls = choice.message.toolCalls
 
@@ -65,22 +65,19 @@ fun main() {
 
 @GptTool("Gets the temperature in the future")
 fun futureTemperature(
-    @GptDescription("The location's name to fetch the temperature for")
-    locationName: String?,
+    @GptDescription("The location the user wants to know the temperature for")
+    location: Location,
     @GptDescription("The date the user wants to find the temperature for")
-    data: String?
+    date: String
 ): String {
     return "-7 C"
 }
 
-@GptDescription("Weather parameters")
-class Weather {
-    @GptDescription("The name of the location to get the future temperature for")
-    val locationName: String? = null
+@GptDescription("This will be overridden where it's parameter with a description annotation.")
+data class Location(
+    @property:GptDescription("The name of the location to get the future temperature for")
+    val city: String,
 
-    @GptDescription("The date to get the future temperature for. The format is YYYY-MM-DD.")
-    val date: String? = null
-
-    @GptDescription("Temperature unit. Can be either Celsius or Fahrenheit. Defaults to Celsius.")
-    val unit: String? = null
-}
+    @property:GptDescription("The 2 digit country code, as following the ISO 3166 A-2 standard.")
+    val country: String
+)
