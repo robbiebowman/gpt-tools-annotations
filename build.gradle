@@ -1,0 +1,25 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+// Root build.gradle
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.9.21'
+    id 'com.google.devtools.ksp' version '1.9.21-1.0.15'
+}
+
+allprojects {
+    group = 'com.robbiebowman'
+    version = '1.0-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    tasks.withType(KotlinCompile).configureEach {
+        kotlinOptions.jvmTarget = '1.8'
+    }
+}
