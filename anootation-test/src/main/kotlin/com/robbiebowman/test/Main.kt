@@ -6,7 +6,6 @@ import com.azure.core.credential.KeyCredential
 import com.azure.core.util.BinaryData
 import com.robbiebowman.gpt.GptDescription
 import com.robbiebowman.gpt.GptTool
-import com.robbiebowman.gpt.ObjectField
 import java.util.*
 
 fun main() {
@@ -35,10 +34,10 @@ fun main() {
         println("Function Arguments: $functionArguments")
 
         // As an additional step, you may want to deserialize the parameters, so you can call your function
-        val parameters = BinaryData.fromString(functionArguments).toObject(Location::class.java)
-        println("Location Name: " + parameters.city)
-        println("Date: " + parameters.city)
-        val functionCallResult = futureTemperature(parameters, parameters.city)
+        val parameters = BinaryData.fromString(functionArguments).toObject(FutureTemperatureResultTwo::class.java)
+        println("Location Name: " + parameters.location?.city)
+        println("Date: " + parameters.date)
+        val functionCallResult = futureTemperature(parameters.location!!, parameters.date!!)
         val assistantMessage = ChatRequestAssistantMessage("")
         assistantMessage.toolCalls = choice.message.toolCalls
 
@@ -76,8 +75,15 @@ fun futureTemperature(
 @GptDescription("This will be overridden where it's parameter with a description annotation.")
 data class Location(
     @property:GptDescription("The name of the location to get the future temperature for")
-    val city: String,
+    val city: String? = null,
 
     @property:GptDescription("The 2 digit country code, as following the ISO 3166 A-2 standard.")
-    val country: String
+    val country: String? = null
+)
+
+data class FutureTemperatureResultTwo (
+
+    val location: Location? = null,
+
+    val date: String? = null,
 )

@@ -1,5 +1,6 @@
 package com.robbiebowman.gpt
 
+import com.google.devtools.ksp.containingFile
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.Resolver
@@ -56,15 +57,34 @@ class FileCreator(private val resolver: Resolver) {
     fun createFunctionDefinition(codeGenerator: CodeGenerator, functionDeclaration: KSFunctionDeclaration, description: String, parentPropClass: String) {
         val packageName = functionDeclaration.containingFile!!.packageName.asString()
         val name = functionDeclaration.simpleName.getShortName()
-        val file = codeGenerator.createNewFile(Dependencies(true, functionDeclaration.containingFile!!), packageName, name)
+        val functionName = "${name}FunctionDefinition"
+        val file = codeGenerator.createNewFile(Dependencies(true, functionDeclaration.containingFile!!), packageName, functionName)
         file.appendText("package $packageName\n\n")
         file.appendText("import com.robbiebowman.gpt.ObjectField\n")
         file.appendText("import com.azure.ai.openai.models.FunctionDefinition\n")
         file.appendText("import com.azure.core.util.BinaryData\n\n")
-        file.appendText("val ${name}FunctionDefinition = FunctionDefinition(\"$name\").apply {\n")
+        file.appendText("val $functionName = FunctionDefinition(\"$name\").apply {\n")
         file.appendText("    description = \"$description\"\n")
         file.appendText("    parameters = BinaryData.fromObject(ObjectField($parentPropClass()))\n")
         file.appendText("}\n")
+        file.close()
+    }
+
+    fun createFunctionReturn(codeGenerator: CodeGenerator, functionDeclaration: KSFunctionDeclaration) {
+        val packageName = functionDeclaration.containingFile!!.packageName.asString()
+        val name = functionDeclaration.simpleName.getShortName()
+        val functionName = "${name.first().uppercase()}${name.drop(1)}Result"
+        val parameters = functionDeclaration.parameters
+        val file = codeGenerator.createNewFile(Dependencies(true, functionDeclaration.containingFile!!), packageName, functionName)
+        file.appendText("package $packageName\n\n")
+        parameters.forEach { param ->
+            file.appendText("import ${param.type.resolve().declaration.qualifiedName?.asString()}\n")
+        }
+        file.appendText("\ndata class $functionName (\n")
+        parameters.forEach { param ->
+            file.appendText("    val ${param.name?.asString()}: ${param.type.resolve().declaration.simpleName.asString()},\n")
+        }
+        file.appendText(")\n")
         file.close()
     }
 }

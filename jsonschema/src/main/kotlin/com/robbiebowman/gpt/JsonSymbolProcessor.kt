@@ -45,6 +45,9 @@ class BuilderProcessor(
                 }?.arguments?.firstOrNull()?.value as String? ?: ""
             val topLevelClass = fileCreator.createInputClass(codeGenerator, function, props, 1)
             fileCreator.createFunctionDefinition(codeGenerator, function, description, topLevelClass)
+            if (function.parameters.size > 1){
+                fileCreator.createFunctionReturn(codeGenerator, function)
+            }
         }
     }
 }
