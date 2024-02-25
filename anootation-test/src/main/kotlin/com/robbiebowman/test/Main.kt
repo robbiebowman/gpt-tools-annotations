@@ -34,7 +34,7 @@ fun main() {
         println("Function Arguments: $functionArguments")
 
         // As an additional step, you may want to deserialize the parameters, so you can call your function
-        val parameters = BinaryData.fromString(functionArguments).toObject(FutureTemperatureResultTwo::class.java)
+        val parameters = BinaryData.fromString(functionArguments).toObject(FutureTemperatureResult::class.java)
         println("Location Name: " + parameters.location?.city)
         println("Date: " + parameters.date)
         val functionCallResult = futureTemperature(parameters.location!!, parameters.date!!)
@@ -79,11 +79,4 @@ data class Location(
 
     @property:GptDescription("The 2 digit country code, as following the ISO 3166 A-2 standard.")
     val country: String? = null
-)
-
-data class FutureTemperatureResultTwo (
-
-    val location: Location? = null,
-
-    val date: String? = null,
 )

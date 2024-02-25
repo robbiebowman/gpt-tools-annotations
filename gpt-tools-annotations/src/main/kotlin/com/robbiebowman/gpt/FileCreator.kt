@@ -82,7 +82,9 @@ class FileCreator(private val resolver: Resolver) {
         }
         file.appendText("\ndata class $functionName (\n")
         parameters.forEach { param ->
-            file.appendText("    val ${param.name?.asString()}: ${param.type.resolve().declaration.simpleName.asString()},\n")
+            val resolvedType = param.type.resolve()
+            val isNullable = resolvedType.isMarkedNullable
+            file.appendText("    val ${param.name?.asString()}: ${resolvedType.declaration.simpleName.asString()}${if (isNullable) "" else "?"} = null,\n")
         }
         file.appendText(")\n")
         file.close()

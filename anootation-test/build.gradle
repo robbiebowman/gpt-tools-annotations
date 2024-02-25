@@ -7,7 +7,7 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0'
     implementation 'com.azure:azure-ai-openai:1.0.0-beta.6'
     implementation 'org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version'
-    implementation project(':jsonschema')
-    ksp project(':jsonschema')
+    implementation project(':gpt-tools-annotations')
+    ksp project(':gpt-tools-annotations')
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
 }
