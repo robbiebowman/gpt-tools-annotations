@@ -18,7 +18,7 @@ fun main() {
         ChatRequestSystemMessage("You are a helpful assistant."),
         ChatRequestUserMessage("What sort of clothing should I wear during my winter trip to Berlin and Paris")
     )
-    val toolDefinition: ChatCompletionsToolDefinition = ChatCompletionsFunctionToolDefinition(
+    val toolDefinition = ChatCompletionsFunctionToolDefinition(
         futureTemperatureFunctionDefinition
     )
     val chatCompletionsOptions = ChatCompletionsOptions(chatMessages)
@@ -45,7 +45,7 @@ fun main() {
         // - The past 2 messages from the original request
         // - A new ChatRequestAssistantMessage with the tool calls from the original request
         // - A new ChatRequestToolMessage with the result of our function call
-        val followUpMessages = Arrays.asList(
+        val followUpMessages = listOf(
             chatMessages[0],
             chatMessages[1],
             assistantMessage,

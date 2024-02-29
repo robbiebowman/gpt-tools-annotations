@@ -1,6 +1,5 @@
 package com.robbiebowman.gpt
 
-import com.google.devtools.ksp.containingFile
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.Resolver
@@ -112,7 +111,6 @@ class FileCreator(private val resolver: Resolver) {
             }
             "array" -> {
                 val listType = resolvedType.arguments.first().type!!.resolve()
-                val itemsType = getJsonType(listType, resolver)
                 val itemsField = getFieldDeclaration(codeGenerator, listType, listType.annotations, depth + 1)
                 "ArrayField($itemsField, $formattedDescription)"
             }
