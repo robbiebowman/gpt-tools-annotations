@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 data class SimpleField @JsonCreator constructor(
     @JsonProperty("type")
-    val type: String,
+    override val type: String,
     @JsonProperty("description")
-    val description: String? = null
-)
+    override val description: String? = null
+) : JsonField

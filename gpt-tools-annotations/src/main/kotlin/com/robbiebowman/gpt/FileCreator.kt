@@ -19,25 +19,14 @@ class FileCreator(private val resolver: Resolver) {
         val className = "${basedOn.simpleName.asString()}_Props"
         val file = codeGenerator.createNewFile(Dependencies(true, basedOn.containingFile!!), packageName, className)
         file.appendText("package $packageName\n\n")
+        file.appendText("import com.robbiebowman.gpt.ArrayField\n")
         file.appendText("import com.robbiebowman.gpt.SimpleField\n")
         file.appendText("import com.robbiebowman.gpt.ObjectField\n\n")
         file.appendText("class ${className}{\n")
         props.forEach { property ->
             val resolvedType = property.type.resolve()
-            val description = (getGptDescription(property.annotations)
-                ?: getGptDescription(resolvedType.declaration.annotations))
-            val formattedDescription = description?.let { "\"${it}\"" } ?: "null"
-            val jsonType = getJsonType(resolvedType, resolver)
-            if (jsonType == "object") {
-                val newProps = PropertyDefinition.getProps(resolvedType.declaration as KSClassDeclaration)
-                val kotlinType =
-                    createInputClass(codeGenerator, resolvedType.declaration, newProps, depth + 1)
-                file.appendText("""    val ${property.name} = ObjectField($kotlinType(), $formattedDescription)""")
-                file.appendText("\n")
-            } else {
-                file.appendText("""    val ${property.name} = SimpleField("$jsonType", $formattedDescription)""")
-                file.appendText("\n")
-            }
+            val fieldDeclaration = getFieldDeclaration(codeGenerator, resolvedType, property.annotations, depth)
+            file.appendText("    val ${property.name} = $fieldDeclaration\n")
         }
         file.appendText("}\n")
         file.close()
@@ -54,11 +43,20 @@ class FileCreator(private val resolver: Resolver) {
             ?.arguments?.firstOrNull()?.value as String?
     }
 
-    fun createFunctionDefinition(codeGenerator: CodeGenerator, functionDeclaration: KSFunctionDeclaration, description: String, parentPropClass: String) {
+    fun createFunctionDefinition(
+        codeGenerator: CodeGenerator,
+        functionDeclaration: KSFunctionDeclaration,
+        description: String,
+        parentPropClass: String
+    ) {
         val packageName = functionDeclaration.containingFile!!.packageName.asString()
         val name = functionDeclaration.simpleName.getShortName()
         val functionName = "${name}FunctionDefinition"
-        val file = codeGenerator.createNewFile(Dependencies(true, functionDeclaration.containingFile!!), packageName, functionName)
+        val file = codeGenerator.createNewFile(
+            Dependencies(true, functionDeclaration.containingFile!!),
+            packageName,
+            functionName
+        )
         file.appendText("package $packageName\n\n")
         file.appendText("import com.robbiebowman.gpt.ObjectField\n")
         file.appendText("import com.azure.ai.openai.models.FunctionDefinition\n")
@@ -75,7 +73,11 @@ class FileCreator(private val resolver: Resolver) {
         val name = functionDeclaration.simpleName.getShortName()
         val functionName = "${name.first().uppercase()}${name.drop(1)}Result"
         val parameters = functionDeclaration.parameters
-        val file = codeGenerator.createNewFile(Dependencies(true, functionDeclaration.containingFile!!), packageName, functionName)
+        val file = codeGenerator.createNewFile(
+            Dependencies(true, functionDeclaration.containingFile!!),
+            packageName,
+            functionName
+        )
         file.appendText("package $packageName\n\n")
         parameters.forEach { param ->
             file.appendText("import ${param.type.resolve().declaration.qualifiedName?.asString()}\n")
@@ -84,9 +86,39 @@ class FileCreator(private val resolver: Resolver) {
         parameters.forEach { param ->
             val resolvedType = param.type.resolve()
             val isNullable = resolvedType.isMarkedNullable
-            file.appendText("    val ${param.name?.asString()}: ${resolvedType.declaration.simpleName.asString()}${if (isNullable) "" else "?"} = null,\n")
+            val typeArgs = resolvedType.arguments.mapNotNull{ it.type?.resolve()}.joinToString().let {
+                if (it.isBlank()) "" else "<$it>"
+            }
+            val paramName = param.name?.asString()
+            val paramType = resolvedType.declaration.simpleName.asString()
+            val nullabilityTag = if (isNullable) "" else "? = null"
+            file.appendText("    val $paramName: $paramType$typeArgs$nullabilityTag,\n")
         }
         file.appendText(")\n")
         file.close()
+    }
+
+    private fun getFieldDeclaration(codeGenerator: CodeGenerator, resolvedType: KSType, annotations: Sequence<KSAnnotation>, depth: Int): String {
+        val description = (getGptDescription(annotations)
+            ?: getGptDescription(resolvedType.declaration.annotations))
+        val formattedDescription = description?.let { "\"${it}\"" } ?: "null"
+        val jsonType = getJsonType(resolvedType, resolver)
+        return when (jsonType) {
+            "object" -> {
+                val newProps = PropertyDefinition.getProps(resolvedType.declaration as KSClassDeclaration)
+                val kotlinType =
+                    createInputClass(codeGenerator, resolvedType.declaration, newProps, depth + 1)
+                "ObjectField($kotlinType(), $formattedDescription)"
+            }
+            "array" -> {
+                val listType = resolvedType.arguments.first().type!!.resolve()
+                val itemsType = getJsonType(listType, resolver)
+                val itemsField = getFieldDeclaration(codeGenerator, listType, listType.annotations, depth + 1)
+                "ArrayField($itemsField, $formattedDescription)"
+            }
+            else -> {
+                "SimpleField(\"$jsonType\", $formattedDescription)\n"
+            }
+        }
     }
 }

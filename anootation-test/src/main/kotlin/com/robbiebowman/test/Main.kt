@@ -16,7 +16,7 @@ fun main() {
         .buildClient()
     val chatMessages = listOf(
         ChatRequestSystemMessage("You are a helpful assistant."),
-        ChatRequestUserMessage("What sort of clothing should I wear today in Berlin next Christmas?")
+        ChatRequestUserMessage("What sort of clothing should I wear during my winter trip to Berlin and Paris")
     )
     val toolDefinition: ChatCompletionsToolDefinition = ChatCompletionsFunctionToolDefinition(
         futureTemperatureFunctionDefinition
@@ -35,9 +35,9 @@ fun main() {
 
         // As an additional step, you may want to deserialize the parameters, so you can call your function
         val parameters = BinaryData.fromString(functionArguments).toObject(FutureTemperatureResult::class.java)
-        println("Location Name: " + parameters.location?.city)
-        println("Date: " + parameters.date)
-        val functionCallResult = futureTemperature(parameters.location!!, parameters.date!!)
+        println("Location Name: " + parameters.location)
+        println("Date: " + parameters.monthAndYear)
+        val functionCallResult = futureTemperature(parameters.location!!, parameters.monthAndYear!!)
         val assistantMessage = ChatRequestAssistantMessage("")
         assistantMessage.toolCalls = choice.message.toolCalls
 
@@ -64,10 +64,10 @@ fun main() {
 
 @GptTool("Gets the temperature in the future")
 fun futureTemperature(
-    @GptDescription("The location the user wants to know the temperature for")
-    location: Location,
-    @GptDescription("The date the user wants to find the temperature for")
-    date: String
+    @GptDescription("The locations the user wants to know the temperature for")
+    location: List<Location>,
+    @GptDescription("The month and year the user wants to find the temperature for")
+    monthAndYear: String
 ): String {
     return "-7 C"
 }

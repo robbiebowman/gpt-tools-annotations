@@ -6,6 +6,12 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSType
 
 fun getJsonType(type: KSType, resolver: Resolver): String {
+    val numberType = resolver.getClassDeclarationByName(
+        resolver.getKSNameFromString("kotlin.Number")
+    )!!.asType(emptyList())
+    val iterableType = resolver.getClassDeclarationByName(
+        resolver.getKSNameFromString("kotlin.collections.Iterable")
+    )!!.asStarProjectedType()
     return when {
         type.isAssignableFrom<String>(resolver) -> {
             "string"
@@ -18,13 +24,16 @@ fun getJsonType(type: KSType, resolver: Resolver): String {
             "int"
         }
 
-        type.isAssignableFrom<Double>(resolver) ||
-                type.isAssignableFrom<Float>(resolver) -> {
+        numberType.isAssignableFrom(type) -> {
             "number"
         }
 
         type.isAssignableFrom<Boolean>(resolver) -> {
             "boolean"
+        }
+
+        iterableType.isAssignableFrom(type) -> {
+            "array"
         }
 
         else -> {

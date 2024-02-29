@@ -2,10 +2,10 @@ package com.robbiebowman.gpt
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
-class ObjectField<T>(
+class ObjectField<T> (
     @JsonProperty("properties") val properties: T,
-    @JsonProperty("description") val description: String? = null
-) {
+    @JsonProperty("description") override val description: String? = null
+): JsonField {
     @JsonProperty("type")
-    val type = "object"
+    override val type = "object"
 }
