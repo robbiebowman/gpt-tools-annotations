@@ -4,17 +4,18 @@ import com.google.devtools.ksp.getDeclaredProperties
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
+import com.robbiebowman.gpt.annotations.GptTool
 import java.io.OutputStream
 
-fun OutputStream.appendText(str: String) {
+internal fun OutputStream.appendText(str: String) {
     this.write(str.toByteArray())
 }
 
-class BuilderProcessor(
+internal class BuilderProcessor(
     val codeGenerator: CodeGenerator
 ) : SymbolProcessor {
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        val functions = resolver.getSymbolsWithAnnotation("com.robbiebowman.gpt.GptTool")
+        val functions = resolver.getSymbolsWithAnnotation("com.robbiebowman.gpt.annotations.GptTool")
         val ret = functions.filter { !it.validate() }.toList()
         functions
             .filter { it.validate() }
@@ -52,7 +53,7 @@ class BuilderProcessor(
     }
 }
 
-class BuilderProcessorProvider : SymbolProcessorProvider {
+internal class BuilderProcessorProvider : SymbolProcessorProvider {
     override fun create(
         environment: SymbolProcessorEnvironment
     ): SymbolProcessor {

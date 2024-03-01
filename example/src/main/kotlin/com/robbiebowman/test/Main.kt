@@ -4,8 +4,8 @@ import com.azure.ai.openai.OpenAIClientBuilder
 import com.azure.ai.openai.models.*
 import com.azure.core.credential.KeyCredential
 import com.azure.core.util.BinaryData
-import com.robbiebowman.gpt.GptDescription
-import com.robbiebowman.gpt.GptTool
+import com.robbiebowman.gpt.annotations.GptDescription
+import com.robbiebowman.gpt.annotations.GptTool
 import java.util.*
 
 fun main() {

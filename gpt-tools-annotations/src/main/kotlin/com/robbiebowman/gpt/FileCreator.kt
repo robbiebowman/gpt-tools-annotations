@@ -4,8 +4,9 @@ import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.*
+import com.robbiebowman.gpt.annotations.GptDescription
 
-class FileCreator(private val resolver: Resolver) {
+internal class FileCreator(private val resolver: Resolver) {
 
     fun createInputClass(
         codeGenerator: CodeGenerator,
@@ -18,9 +19,9 @@ class FileCreator(private val resolver: Resolver) {
         val className = "${basedOn.simpleName.asString()}_Props"
         val file = codeGenerator.createNewFile(Dependencies(true, basedOn.containingFile!!), packageName, className)
         file.appendText("package $packageName\n\n")
-        file.appendText("import com.robbiebowman.gpt.ArrayField\n")
-        file.appendText("import com.robbiebowman.gpt.SimpleField\n")
-        file.appendText("import com.robbiebowman.gpt.ObjectField\n\n")
+        file.appendText("import com.robbiebowman.gpt.fields.ArrayField\n")
+        file.appendText("import com.robbiebowman.gpt.fields.SimpleField\n")
+        file.appendText("import com.robbiebowman.gpt.fields.ObjectField\n\n")
         file.appendText("class ${className}{\n")
         props.forEach { property ->
             val resolvedType = property.type.resolve()
@@ -57,7 +58,7 @@ class FileCreator(private val resolver: Resolver) {
             functionName
         )
         file.appendText("package $packageName\n\n")
-        file.appendText("import com.robbiebowman.gpt.ObjectField\n")
+        file.appendText("import com.robbiebowman.gpt.fields.ObjectField\n")
         file.appendText("import com.azure.ai.openai.models.FunctionDefinition\n")
         file.appendText("import com.azure.core.util.BinaryData\n\n")
         file.appendText("val $functionName = FunctionDefinition(\"$name\").apply {\n")

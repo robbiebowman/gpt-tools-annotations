@@ -5,7 +5,7 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSType
 
-fun getJsonType(type: KSType, resolver: Resolver): String {
+internal fun getJsonType(type: KSType, resolver: Resolver): String {
     val numberType = resolver.getClassDeclarationByName(
         resolver.getKSNameFromString("kotlin.Number")
     )!!.asType(emptyList())
@@ -42,7 +42,7 @@ fun getJsonType(type: KSType, resolver: Resolver): String {
     }
 }
 
-inline fun <reified T> KSType.isAssignableFrom(resolver: Resolver): Boolean {
+internal inline fun <reified T> KSType.isAssignableFrom(resolver: Resolver): Boolean {
     val classDeclaration = requireNotNull(resolver.getClassDeclarationByName<T>()) {
         "Unable to resolve ${KSClassDeclaration::class.simpleName} for type ${T::class.simpleName}"
     }
