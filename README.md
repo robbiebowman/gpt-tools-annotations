@@ -17,6 +17,9 @@ above your function's types and parameters.
 
 # Usage
 
+For a fully working example, check out [the sample code](example/src/main/kotlin/com/robbiebowman/test/Main.kt), which 
+itself is a modification of Azure Open AI SDK's official [Tools example](https://github.com/Azure/azure-sdk-for-java/blob/azure-ai-openai_1.0.0-beta.6/sdk/openai/azure-ai-openai/src/samples/java/com/azure/ai/openai/ChatCompletionsFunctionCall.java).
+
 Firstly, I'll put a `@GptTool` annotation above the function you'd like to turn into a GPT Tool.
 I'll also label the arguments with useful descriptions with `@GptDescriotion`.
 ```kotlin
@@ -51,10 +54,29 @@ val arguments = BinaryData.fromString(functionArguments).toObject(FutureTemperat
 futureTemperature(arguments.location!!, arguments.monthAndYear!!)
 ```
 
-
 # Installation
 
-TODO: Publish library to a Maven repo
+Apply the Kotlin Symbol Processing plugin, add the project as both a
+ksp (for generating classes) and implementation (for the annotations) dependency.
+```kotlin
+plugins {
+    id("com.google.devtools.ksp") version "1.9.21-1.0.15"
+}
+
+repositories {
+    // For ksp
+    gradlePluginPortal()
+    // For the annotations
+    maven("https://jitpack.io")
+}
+
+dependencies {
+    implementation("com.github.robbiebowman:gpt-tools-annotations:1.0.1")
+    // Use whichever version you like
+    implementation("com.azure:azure-ai-openai:1.0.0-beta.6")
+    ksp("com.github.robbiebowman:gpt-tools-annotations:1.0.1")
+}
+```
 
 # Debugging Locally via IntelliJ
 1. Run `./gradlew -Dkotlin.daemon.jvm.options="-Xdebug,-Xrunjdwp:transport=dt_socket\,address=5005\,server=y\,suspend=n" clean build` to get the KotlinCompileDaemon started.
