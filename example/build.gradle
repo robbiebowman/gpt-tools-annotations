@@ -5,14 +5,13 @@ plugins {
 
 repositories {
     maven { url 'https://jitpack.io' }
-    mavenLocal()
 }
 
 dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0'
     implementation 'com.azure:azure-ai-openai:1.0.0-beta.6'
     implementation 'org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version'
-    implementation 'com.robbiebowman:gpt-tools-annotations:1.0-SNAPSHOT'
-    ksp 'com.robbiebowman:gpt-tools-annotations:1.0-SNAPSHOT'
+    implementation project(':gpt-tools-annotations')
+    ksp project(':gpt-tools-annotations')
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
 }
